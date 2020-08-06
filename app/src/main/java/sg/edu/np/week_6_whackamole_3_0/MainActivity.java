@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 public class MainActivity extends AppCompatActivity {
 
     /*
@@ -38,13 +40,42 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG, FILENAME + ": Invalid user!");
 
         */
+        final EditText etUsername = (EditText) findViewById(R.id.etUsername);
+        final EditText etPassword = (EditText) findViewById(R.id.etPassword);
+        Button bLogin = (Button) findViewById(R.id.buttonLogin);
+        TextView etNewUser = (TextView) findViewById(R.id.tvNewUser);
 
+        etNewUser.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Intent intent = new Intent(MainActivity.this, Main2Activity.class);
+                Log.v(TAG, FILENAME + ": Create new user!");
+                startActivity(intent);
+                return false;
+            }
+        });
+
+        bLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isValidUser(etUsername.getText().toString(), etPassword.getText().toString())) {
+                    Intent intent = new Intent(MainActivity.this, Main3Activity.class);
+                    intent.putExtra("username", etUsername.getText().toString());
+                    startActivity(intent);
+                }
+            }
+        });
 
     }
 
     protected void onStop(){
         super.onStop();
         finish();
+    }
+
+    public void deleteAccount(String username) { // for development purposes
+        MyDBHandler dbHandler = new MyDBHandler(this, null, null, 1);
+        dbHandler.deleteAccount(username);
     }
 
     public boolean isValidUser(String userName, String password){
@@ -54,7 +85,23 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG, FILENAME + ": Running Checks..." + dbData.getMyUserName() + ": " + dbData.getMyPassword() +" <--> "+ userName + " " + password);
             You may choose to use this or modify to suit your design.
          */
-
+        boolean result = false;
+        MyDBHandler dbHandler = new MyDBHandler(this, null, null, 1);
+        UserData dbData = dbHandler.findUser(userName);
+        if (dbData != null) {
+            Log.v(TAG, FILENAME + ": Running Checks..." + dbData.getMyUserName() + ": " + dbData.getMyPassword() +" <--> "+ userName + ": " + password);
+            if (dbData.getMyPassword().equals(password)) {
+                result = true;
+            }
+            else {
+                Toast.makeText(this, "Invalid Username or Password", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {
+            Log.v(TAG, FILENAME + ": No data found!");
+            Toast.makeText(this, "Invalid Username or Password", Toast.LENGTH_SHORT).show();
+        }
+        return result;
     }
 
 }

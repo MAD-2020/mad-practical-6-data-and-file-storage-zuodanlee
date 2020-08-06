@@ -11,7 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-public class Main3Activity extends AppCompatActivity {
+public class Main3Activity extends AppCompatActivity implements CustomScoreViewHolder.OnScoreListener {
     /* Hint:
         1. This displays the available levels from 1 to 10 to the user.
         2. The different levels makes use of the recyclerView and displays the highest score
@@ -27,6 +27,8 @@ public class Main3Activity extends AppCompatActivity {
      */
     private static final String FILENAME = "Main3Activity.java";
     private static final String TAG = "Whack-A-Mole3.0!";
+    UserData userData;
+    String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +40,43 @@ public class Main3Activity extends AppCompatActivity {
 
         Log.v(TAG, FILENAME + ": Show level for User: "+ userName);
          */
+
+        Button bBack = (Button) findViewById(R.id.buttonBackToLogin);
+
+        bBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Main3Activity.this, MainActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        Intent getUsername = getIntent();
+        username = getUsername.getStringExtra("username");
+
+        MyDBHandler dbHandler = new MyDBHandler(this, null, null, 1);
+        userData = dbHandler.findUser(username);
+
+        RecyclerView recyclerView = findViewById(R.id.rvLevelSelect);
+        CustomScoreAdaptor mAdaptor = new CustomScoreAdaptor(userData, this);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(mAdaptor);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         finish();
+    }
+
+    @Override
+    public void selectLevel(int position) {
+        Intent intent = new Intent(Main3Activity.this, Main4Activity.class);
+        intent.putExtra("level", position+1);
+        intent.putExtra("username", username);
+        Log.v(TAG, FILENAME+ ": Load level " + (position+1) +" for: " + userData.getMyUserName());
+        startActivity(intent);
     }
 }
